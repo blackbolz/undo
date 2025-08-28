@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undo Your L's</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=MS+Sans+Serif:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'MS Sans Serif', sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        /* CRT Monitor Frame */
+        .monitor {
+            background: linear-gradient(135deg, #333 0%, #666 50%, #999 100%);
+            border-radius: 25px;
+            padding: 40px 30px 50px 30px;
+            box-shadow: 
+                0 0 50px rgba(0,0,0,0.8),
+                inset 0 0 20px rgba(255,255,255,0.1),
+                inset 0 -5px 10px rgba(0,0,0,0.3);
+            position: relative;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        .monitor::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 8px;
+            background: linear-gradient(to right, #444, #666, #444);
+            border-radius: 4px;
+        }
+        
+        .monitor::after {
+            content: '';
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 12px;
+            background: linear-gradient(to bottom, #555, #333);
+            border-radius: 6px;
+        }
+        
+        /* Screen */
+        .screen {
+            background: url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAoAEADASIAAhEBAxEB/8QAGwABAQEBAAMAAAAAAAAAAAAAAAQDBQECBv/EACwQAAEEAQMCBQMFAQAAAAAAAAECAwQRBQASITFBUWGBkfATInGhscHR4fH/QAAbAQACAwEBAQAAAAAAAAAAAAACAwABBAUGB//EACERAAMAAgICAwEAAAAAAAAAAAABAgMRIRIxBCJBE1H/2gAMAwEAAhEDEQA/APnUaNGjQFGjRo0BRo0aNAUaNGjQFGjRo0BRo0aNAUaNGjQFGjRo0BRo0aNAUaNGjQFGjRo0BRo0aNAUaNGjQFGjRo0BRo0aNAUaNGjQFGjRo0BRo0aNAUaNGjQFGjRo0BRo0aNAUaNGjQFGjRo0BRo0aNAUaNGjQFGjRo0BRo0aNAUaNGjQFGjRo0BR//9k=') no-repeat center center;
+            background-size: cover;
+            border: 3px inset #333;
+            border-radius: 8px;
+            width: 100%;
+            height: 75vh;
+            min-height: 600px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        }
+        
+        .screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('images/background.png') no-repeat center center;
+            background-size: cover;
+            z-index: 1;
+        }
+        
+        /* Desktop Icons */
+        .desktop-icons {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 5;
+        }
+        
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 70px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+            transition: background 0.2s;
+        }
+        
+        .desktop-icon:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .desktop-icon img {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 5px;
+        }
+        
+        .desktop-icon span {
+            color: white;
+            font-size: 10px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        /* Taskbar */
+        .taskbar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(to bottom, #245EDC, #1A4DB8);
+            border-top: 1px solid #5B9BD5;
+            display: flex;
+            align-items: center;
+            padding: 0 5px;
+            z-index: 100;
+        }
+        
+        .start-button {
+            background: linear-gradient(to bottom, #2F6FDD, #1A4DB8);
+            border: 1px outset #2F6FDD;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 15px;
+            margin-right: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .start-button:hover {
+            background: linear-gradient(to bottom, #4080EE, #2F6FDD);
+        }
+        
+        .start-button:active {
+            border: 1px inset #2F6FDD;
+        }
+        
+        .taskbar-buttons {
+            flex: 1;
+            display: flex;
+            gap: 2px;
+            overflow: hidden;
+        }
+        
+        .taskbar-button {
+            background: linear-gradient(to bottom, #3A7AE4, #245EDC);
+            border: 1px outset #3A7AE4;
+            color: white;
+            font-size: 10px;
+            padding: 4px 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+        }
+        
+        .taskbar-button:hover {
+            background: linear-gradient(to bottom, #4A8AEE, #3A7AE4);
+        }
+        
+        .taskbar-button.active {
+            border: 1px inset #3A7AE4;
+            background: linear-gradient(to bottom, #2A5ACC, #1A4DB8);
+        }
+        
+        .system-tray {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: auto;
+            padding: 0 10px;
+            font-size: 10px;
+            color: white;
+        }
+        
+        /* Windows */
+        .window {
+            position: absolute;
+            background: #ECE9D8;
+            border: 2px outset #ECE9D8;
+            border-radius: 0;
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.4);
+            min-width: 400px;
+            z-index: 10;
+        }
+        
+        .window-title-bar {
+            background: linear-gradient(to bottom, #0A5DC4, #0053C7);
+            color: white;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+        
+        .window-controls {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .window-control {
+            width: 16px;
+            height: 14px;
+            font-size: 9px;
+            font-weight: bold;
+            border: 1px outset #ccc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .minimize { background: #D4D0C8; }
+        .maximize { background: #D4D0C8; }
+        .close { background: #DC143C; color: white; }
+        
+        .window-control:active {
+            border: 1px inset;
+        }
+        
+        .window-control:hover {
+            box-shadow: inset 0 0 2px rgba(255,255,255,0.5);
+        }
+        
+        .window-content {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        /* Main UNDO Window */
+        .main-window {
+            top: 80px;
+            left: calc(50% - 300px);
+            width: 600px;
+            text-align: center;
+        }
+        
+        .undo-title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2C5282;
+            margin-bottom: 10px;
+        }
+        
+        .undo-tagline {
+            font-size: 18px;
+            color: #2D3748;
+            margin-bottom: 20px;
+        }
+
+        /* Contract Address Section */
+        .contract-address-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #F5F5F5;
+            border: 2px inset #D4D0C8;
+            border-radius: 3px;
+        }
+
+        .ca-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ca-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #2D3748;
+        }
+
+        .ca-box {
+            background: #FFFFFF;
+            border: 1px inset #D4D0C8;
+            padding: 8px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #2D3748;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .copy-button {
+            background: linear-gradient(to bottom, #E0E0E0, #C0C0C0);
+            border: 1px outset #C0C0C0;
+            font-size: 10px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #2D3748;
+        }
+
+        .copy-button:hover {
+            background: linear-gradient(to bottom, #F0F0F0, #D0D0D0);
+        }
+
+        .copy-button:active {
+            border: 1px inset #C0C0C0;
+        }
+
+        .copy-feedback {
+            font-size: 10px;
+            color: #22C55E;
+            font-style: italic;
+            margin-left: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .copy-feedback.show {
+            opacity: 1;
+        }
+        
+        /* Popup Windows */
+        .popup {
+            position: absolute;
+            background: #ECE9D8;
+            border: 2px outset #ECE9D8;
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.4);
+            min-width: 300px;
+            z-index: 1000;
+            animation: popup-bounce 0.3s ease-out;
+        }
+        
+        @keyframes popup-bounce {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .popup-content {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .popup-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+        
+        .popup-text {
+            font-size: 12px;
+            margin-bottom: 20px;
+            color: #2D3748;
+        }
+        
+        .undo-button {
+            background: linear-gradient(to bottom, #FFE066, #FFD700);
+            border: 2px outset #FFD700;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 8px 20px;
+            cursor: pointer;
+        }
+        
+        .undo-button:hover {
+            background: linear-gradient(to bottom, #FFEB99, #FFE033);
+        }
+        
+        .undo-button:active {
+            border: 2px inset #FFD700;
+        }
+        
+        /* Redo Button Style */
+        .redo-button {
+            background: linear-gradient(to bottom, #66E066, #00D700);
+            border: 2px outset #00D700;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 8px 20px;
+            cursor: pointer;
+        }
+        
+        .redo-button:hover {
+            background: linear-gradient(to bottom, #99EB99, #33E033);
+        }
+        
+        .redo-button:active {
+            border: 2px inset #00D700;
+        }
+        
+        /* Button Container */
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        /* About Window */
+        .about-window {
+            top: 120px;
+            left: 100px;
+            width: 450px;
+            display: none;
+        }
+        
+        .about-content {
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: left;
+        }
+        
+        .about-content h3 {
+            color: #2C5282;
+            margin-bottom: 10px;
+        }
+        
+        .about-content p {
+            margin-bottom: 15px;
+        }
+        
+        /* Draggable windows */
+        .dragging {
+            user-select: none;
+            pointer-events: none;
+        }
+        
+        .dragging * {
+            pointer-events: none;
+        }
+        
+        /* Smooth dragging transition */
+        .window:not(.dragging), .popup:not(.dragging) {
+            transition: none;
+        }
+        
+        /* Keyboard shortcut hint */
+        .keyboard-hint {
+            font-size: 10px;
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+        }
+        
+        /* Visual feedback for keyboard shortcuts */
+        .keyboard-active {
+            animation: keyboardPulse 0.3s ease-out;
+        }
+        
+        @keyframes keyboardPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @media (max-width: 768px) {
+            .monitor {
+                padding: 20px 15px 25px 15px;
+                margin: 10px;
+            }
+            
+            .screen {
+                height: 80vh;
+                min-height: 500px;
+            }
+            
+            .main-window {
+                width: 90%;
+                min-width: 300px;
+            }
+            
+            .undo-title {
+                font-size: 32px;
+            }
+            
+            .button-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .ca-container {
+                flex-direction: column;
+            }
+
+            .ca-box {
+                min-width: 250px;
+            }
+        }
+        
+        /* Minimized and Fullscreen states */
+        .window.minimized {
+            display: none !important;
+        }
+        
+        .window.fullscreen {
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: calc(100% - 30px) !important;
+            max-width: none !important;
+            max-height: none !important;
+            border-radius: 0;
+            z-index: 50;
+        }
+        
+        .window.fullscreen .window-content {
+            height: calc(100% - 25px);
+            max-height: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Monitor Frame -->
+    <div class="monitor">
+        <!-- Screen -->
+        <div class="screen">
+            <!-- Desktop Icons -->
+            <div class="desktop-icons">
+                <div class="desktop-icon" onclick="openAboutWindow()">
+                    <img src="images/info.png" alt="About" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; width: 32px; height: 32px; background: linear-gradient(45deg, #4A90E2, #357ABD); border: 2px outset #4A90E2; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">?</div>
+                    <span>About</span>
+                </div>
+                <div class="desktop-icon" onclick="window.open('https://pump.fun/board', '_blank')">
+                    <img src="images/pumplogo.png" alt="Buy" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="display: none; width: 32px; height: 32px; background: linear-gradient(45deg, #FFD700, #FFA500); border: 2px outset #FFD700; align-items: center; justify-content: center; color: #333; font-weight: bold; font-size: 12px;">💰</div>
+                    <span>Buy $UNDO</span>
+                </div>
+                <div class="desktop-icon" onclick="window.open('https://twitter.com/undoyourls', '_blank')">
+                    <img src="images/xlogo.png" alt="Twitter" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="display: none; width: 32px; height: 32px; background: linear-gradient(45deg, #1DA1F2, #0d8bd9); border: 2px outset #1DA1F2; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">X</div>
+                    <span>Community</span>
+                </div>
+                <div class="desktop-icon" onclick="window.open('https://dexscreener.com', '_blank')">
+                    <img src="images/dexlogo.png" alt="Telegram" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="display: none; width: 32px; height: 32px; background: linear-gradient(45deg, #0088cc, #006699); border: 2px outset #0088cc; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">T</div>
+                    <span>Dexscreener</span>
+                </div>
+            </div>
+            
+            <!-- Main UNDO Window -->
+            <div class="window main-window">
+                <div class="window-title-bar">
+                    <span>$UNDO - Undo Your L's</span>
+                    <div class="window-controls">
+                        <div class="window-control minimize" onclick="minimizeWindow(this.closest('.window'))" title="Minimize">_</div>
+                        <div class="window-control maximize" onclick="toggleFullscreen(this.closest('.window'))" title="Maximize">□</div>
+                        <div class="window-control close" onclick="minimizeMainWindow()" title="Close">&times;</div>
+                    </div>
+                </div>
+                <div class="window-content">
+                    <h1 class="undo-title">$UNDO</h1>
+                    <div class="undo-tagline">Undo Your L's</div>
+                    
+                    <div style="text-align: left; font-size: 12px; line-height: 1.5; margin: 20px 0;">
+                        <p><strong>We've all been there.</strong> Bought the top. Sold the bottom. FOMO'd into rugs. Fat-fingered your limit order.</p>
+                        <p>In crypto, every trader dreams of one buttons: <strong>UNDO</strong>.</p>
+                        <p>If you <strong>REDO</strong> the same mistakes, your on the right page.</p>
+                        <p>We built <strong>$UNDO — the coin that gives you one more chance.</strong></p>
+                    </div>
+                    
+                    <!-- Contract Address Section -->
+                    <div class="contract-address-section">
+                        <div class="ca-container">
+                            <span class="ca-label">CA:</span>
+                            <div class="ca-box" id="contractAddress">coming soon</div>
+                            <button class="copy-button" onclick="copyContractAddress()">Copy</button>
+                            <span class="copy-feedback" id="copyFeedback">Copied!</span>
+                        </div>
+                    </div>
+                    
+                    <div class="button-container">
+                        <button class="undo-button" id="undoBtn" onclick="performUndo()">UNDO (Ctrl+Z)</button>
+                        <button class="redo-button" id="redoBtn" onclick="performRedo()">REDO (Ctrl+Y)</button>
+                    </div>
+                    
+                    <div class="keyboard-hint">
+                        Use Ctrl+Z for UNDO or Ctrl+Y for REDO
+                    </div>
+                    
+                    <div style="font-size: 10px; font-style: italic; color: #666; text-align: center; margin-top: 15px;">
+                        *$UNDO will not actually undo your trades, but it will undo your tears.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- About Window (Hidden by default) -->
+            <div class="window about-window" id="aboutWindow">
+                <div class="window-title-bar">
+                    <span>About $UNDO</span>
+                    <div class="window-controls">
+                        <div class="window-control minimize" onclick="minimizeWindow(this.closest('.window'))" title="Minimize">_</div>
+                        <div class="window-control maximize" onclick="toggleFullscreen(this.closest('.window'))" title="Maximize">□</div>
+                        <div class="window-control close" onclick="closeAboutWindow()" title="Close">&times;</div>
+                    </div>
+                </div>
+                <div class="window-content about-content">
+                    <h3>🔄 The Undo Button</h3>
+                    <p>Press it for good luck (meme-style animation included). While it won't actually undo your trades, it will undo your tears.</p>
+                    
+                    <h3>↩️ The Redo Button</h3>
+                    <p>Sometimes you need to make the same mistake twice. The redo button ensures maximum chaos with even more popup windows!</p>
+                    
+                    <h3>⌨️ Keyboard Shortcuts</h3>
+                    <p>Use Ctrl+Z for UNDO and Ctrl+Y for REDO - just like your favorite text editor, but for your trading mistakes.</p>
+                    
+                    <h3>👥 Community-Powered</h3>
+                    <p>Every L becomes a story. Share your trading disasters and bond with fellow mistake-makers. We're all in this together.</p>
+                    
+                    <h3>♾️ Infinite Redos</h3>
+                    <p>Because in crypto, you only lose if you don't try again. $UNDO holders never give up, they just reload and try again.</p>
+                    
+                    <div class="button-container" style="margin-top: 20px;">
+                        <button class="undo-button" onclick="performUndo()">TRY UNDO</button>
+                        <button class="redo-button" onclick="performRedo()">TRY REDO</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Taskbar -->
+            <div class="taskbar">
+                <div class="start-button" onclick="performUndo()">
+                    <span style="color: #FFD700;">⊞</span>
+                    Start
+                </div>
+                <div class="taskbar-buttons">
+                    <div class="taskbar-button active">$UNDO - Undo Your L's</div>
+                    <div class="taskbar-button" id="aboutTaskbarButton" style="display: none;" onclick="toggleAboutWindow()">About $UNDO</div>
+                </div>
+                <div class="system-tray">
+                    <span>🔊</span>
+                    <span>📶</span>
+                    <span id="clock"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden audio element for click sounds -->
+    <audio id="clickSound" preload="auto">
+        <source src="images/click.mp3" type="audio/mp3">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApKnuPyy3ElBSuF0fPVfiwELYHM9NeKOAYZaqzj9KlsEQlMnuLzx3ElBSuF0POZEjFiIgD//1Qx" />
+    </audio>
+
+    <script>
+        const undoMessages = [
+            "You bought the top.",
+            "You just sold too early.",
+            "Your bags are now dust.",
+            "You got rugged again.",
+            "Fat finger detected.",
+            "Oops. Wrong token.",
+            "You made a bad trade.",
+            "Market crashed.",
+            "Oops, fat-finger sell order.",
+            "You FOMO'd into a rug pull.",
+            "Your stop loss got triggered.",
+            "You panic sold the bottom.",
+            "Diamond hands turned to paper.",
+            "You bought the dip... it kept dipping.",
+            "Your limit order got filled at 3 AM."
+        ];
+
+        const redoMessages = [
+            "You're doing it again!",
+            "Here we go again...",
+            "Another questionable decision.",
+            "You never learn, do you?",
+            "Same mistake, different day.",
+            "History repeats itself.",
+            "Déjà vu trading activated.",
+            "The definition of insanity.",
+            "You're back for more punishment.",
+            "Double down on bad decisions.",
+            "Redoing your financial mistakes.",
+            "Welcome back to the casino.",
+            "Ready to lose more money?",
+            "FOMO strikes twice.",
+            "Your wallet is crying again."
+        ];
+
+        let activePopups = [];
+        let windowStates = new Map();
+        let popupCounter = 0;
+        let highestZIndex = 200; // Track the highest z-index for layering
+
+        // Copy contract address function
+        function copyContractAddress() {
+            const contractText = document.getElementById('contractAddress').textContent;
+            const feedback = document.getElementById('copyFeedback');
+            
+            // Try to copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(contractText).then(() => {
+                    showCopyFeedback();
+                }).catch(() => {
+                    // Fallback for older browsers
+                    fallbackCopy(contractText);
+                });
+            } else {
+                // Fallback for older browsers
+                fallbackCopy(contractText);
+            }
+            
+            playClickSound();
+        }
+
+        function fallbackCopy(text) {
+            // Create a temporary textarea element
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopyFeedback();
+            } catch (err) {
+                console.log('Copy failed:', err);
+            }
+            
+            document.body.removeChild(textarea);
+        }
+
+        function showCopyFeedback() {
+            const feedback = document.getElementById('copyFeedback');
+            feedback.classList.add('show');
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 2000);
+        }
+
+        // Window focus management
+        function bringToFront(element) {
+            // Remove focus from all windows and popups
+            document.querySelectorAll('.window, .popup').forEach(el => {
+                el.classList.remove('focused');
+            });
+            
+            // Add focus to clicked element and bring to front
+            element.classList.add('focused');
+            highestZIndex += 10;
+            element.style.zIndex = highestZIndex;
+        }
+
+        // Add click listeners to all windows and popups for focus management
+        document.addEventListener('click', function(e) {
+            const clickedWindow = e.target.closest('.window, .popup');
+            if (clickedWindow && !clickedWindow.classList.contains('fullscreen')) {
+                bringToFront(clickedWindow);
+            }
+        });
+
+        // Play click sound function
+        function playClickSound() {
+            try {
+                const audio = document.getElementById('clickSound');
+                audio.currentTime = 0;
+                audio.play().catch(e => {
+                    console.log('Audio play failed:', e);
+                });
+            } catch(e) {
+                console.log('Audio not available:', e);
+            }
+        }
+
+        // Add click sound to all clickable elements
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON' || 
+                e.target.classList.contains('window-control') ||
+                e.target.classList.contains('desktop-icon') ||
+                e.target.classList.contains('start-button') ||
+                e.target.classList.contains('taskbar-button')) {
+                playClickSound();
+            }
+        });
+
+        // Keyboard shortcut handler
+        document.addEventListener('keydown', function(e) {
+            // Check for Ctrl+Z (Undo)
+            if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                if (activePopups.length > 0) {
+                    // Close the most recent popup
+                    const mostRecentPopup = activePopups[activePopups.length - 1];
+                    closeSpecificPopup(mostRecentPopup);
+                } else {
+                    // Create new popup if none exist
+                    performUndo();
+                }
+                // Visual feedback
+                const undoBtn = document.getElementById('undoBtn');
+                if (undoBtn) {
+                    undoBtn.classList.add('keyboard-active');
+                    setTimeout(() => {
+                        undoBtn.classList.remove('keyboard-active');
+                    }, 300);
+                }
+            }
+            
+            // Check for Ctrl+Y (Redo)
+            if (e.ctrlKey && e.key === 'y') {
+                e.preventDefault();
+                performRedo();
+                // Visual feedback
+                const redoBtn = document.getElementById('redoBtn');
+                if (redoBtn) {
+                    redoBtn.classList.add('keyboard-active');
+                    setTimeout(() => {
+                        redoBtn.classList.remove('keyboard-active');
+                    }, 300);
+                }
+            }
+        });
+
+        function performUndo() {
+            playClickSound();
+            showPopup(undoMessages, '⚠️', 'Trading Error');
+        }
+
+        function performRedo() {
+            playClickSound();
+            // Redo creates multiple popups for maximum chaos
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    showPopup(redoMessages, '🔄', 'Redo Activated');
+                }, i * 300);
+            }
+        }
+
+        function showPopup(messages, icon, title) {
+            const popup = document.createElement('div');
+            popup.className = 'popup';
+            popupCounter++;
+            popup.id = `popup-${popupCounter}-${Date.now()}`;
+            
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            
+            popup.innerHTML = `
+                <div class="window-title-bar">
+                    <span>${title}</span>
+                    <div class="window-controls">
+                        <div class="window-control close" onclick="closeSpecificPopup('${popup.id}')">&times;</div>
+                    </div>
+                </div>
+                <div class="popup-content">
+                    <div class="popup-icon">${icon}</div>
+                    <div class="popup-text">${randomMessage}</div>
+                    <div class="button-container">
+                        <button class="undo-button" onclick="closeSpecificPopup('${popup.id}')">UNDO</button>
+                        <button class="redo-button" onclick="popupRedo()">REDO</button>
+                    </div>
+                </div>
+            `;
+            
+            // Random position within screen bounds
+            const screen = document.querySelector('.screen');
+            const maxX = screen.clientWidth - 350;
+            const maxY = screen.clientHeight - 250;
+            const randomX = Math.random() * Math.max(0, maxX - 50) + 50;
+            const randomY = Math.random() * Math.max(0, maxY - 100) + 100;
+            
+            popup.style.left = randomX + 'px';
+            popup.style.top = randomY + 'px';
+            
+            screen.appendChild(popup);
+            activePopups.push(popup.id);
+            
+            // Bring new popup to front
+            setTimeout(() => bringToFront(popup), 50);
+        }
+
+        function popupRedo() {
+            playClickSound();
+            // Create 2 new popups when redo is pressed from within a popup
+            for (let i = 0; i < 2; i++) {
+                setTimeout(() => {
+                    showPopup(redoMessages, '🔄', 'Redo Activated');
+                }, i * 200);
+            }
+        }
+
+        function closeSpecificPopup(popupId) {
+            const popup = document.getElementById(popupId);
+            if (popup) {
+                popup.style.animation = 'popup-bounce 0.2s ease-in reverse';
+                setTimeout(() => {
+                    if (popup.parentNode) {
+                        popup.remove();
+                    }
+                    activePopups = activePopups.filter(id => id !== popupId);
+                }, 200);
+            }
+        }
+
+        function openAboutWindow() {
+            const aboutWindow = document.getElementById('aboutWindow');
+            const taskbarButton = document.getElementById('aboutTaskbarButton');
+            aboutWindow.classList.remove('minimized');
+            aboutWindow.style.display = 'block';
+            taskbarButton.style.display = 'block';
+            taskbarButton.classList.add('active');
+            // Bring to front when opened
+            bringToFront(aboutWindow);
+        }
+
+        function closeAboutWindow() {
+            const aboutWindow = document.getElementById('aboutWindow');
+            const taskbarButton = document.getElementById('aboutTaskbarButton');
+            aboutWindow.style.display = 'none';
+            taskbarButton.style.display = 'none';
+            taskbarButton.classList.remove('active');
+        }
+
+        function toggleAboutWindow() {
+            const aboutWindow = document.getElementById('aboutWindow');
+            const taskbarButton = document.getElementById('aboutTaskbarButton');
+            
+            if (aboutWindow.classList.contains('minimized')) {
+                aboutWindow.classList.remove('minimized');
+                aboutWindow.style.display = 'block';
+                taskbarButton.classList.add('active');
+            } else if (aboutWindow.style.display === 'none') {
+                openAboutWindow();
+            } else {
+                minimizeWindow(aboutWindow);
+            }
+        }
+
+        function minimizeMainWindow() {
+            const mainWindow = document.querySelector('.main-window');
+            minimizeWindow(mainWindow);
+        }
+
+        // Restore window when taskbar button clicked
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('taskbar-button') && !e.target.classList.contains('active')) {
+                const buttonText = e.target.textContent;
+                let windowToRestore = null;
+                
+                if (buttonText.includes('$UNDO')) {
+                    windowToRestore = document.querySelector('.main-window');
+                } else if (buttonText.includes('About')) {
+                    windowToRestore = document.getElementById('aboutWindow');
+                }
+                
+                if (windowToRestore && windowToRestore.classList.contains('minimized')) {
+                    windowToRestore.classList.remove('minimized');
+                    windowToRestore.style.display = 'block';
+                    e.target.classList.add('active');
+                    // Bring restored window to front
+                    bringToFront(windowToRestore);
+                }
+            }
+        });
+
+        function minimizeWindow(windowElement) {
+            if (!windowElement) return;
+            
+            const windowId = windowElement.id || 'window-' + Date.now();
+            windowElement.id = windowId;
+            
+            // Store current state
+            windowStates.set(windowId, {
+                display: windowElement.style.display,
+                position: {
+                    left: windowElement.style.left,
+                    top: windowElement.style.top,
+                    width: windowElement.style.width,
+                    height: windowElement.style.height
+                }
+            });
+            
+            windowElement.classList.add('minimized');
+            
+            // Update taskbar button
+            const taskbarButtons = document.querySelectorAll('.taskbar-button');
+            taskbarButtons.forEach(btn => {
+                if (btn.textContent.includes(windowElement.querySelector('.window-title-bar span').textContent)) {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function toggleFullscreen(windowElement) {
+            if (!windowElement) return;
+            
+            if (windowElement.classList.contains('fullscreen')) {
+                // Exit fullscreen
+                windowElement.classList.remove('fullscreen');
+                const windowId = windowElement.id;
+                const savedState = windowStates.get(windowId);
+                if (savedState) {
+                    Object.assign(windowElement.style, savedState.position);
+                    windowElement.style.transform = savedState.transform || '';
+                }
+                windowElement.querySelector('.maximize').textContent = '□';
+                // Restore normal z-index behavior
+                bringToFront(windowElement);
+            } else {
+                // Enter fullscreen
+                const windowId = windowElement.id || 'window-' + Date.now();
+                windowElement.id = windowId;
+                
+                // Save current state including transform
+                windowStates.set(windowId, {
+                    display: windowElement.style.display,
+                    transform: windowElement.style.transform,
+                    position: {
+                        left: windowElement.style.left,
+                        top: windowElement.style.top,
+                        width: windowElement.style.width,
+                        height: windowElement.style.height
+                    }
+                });
+                
+                windowElement.classList.add('fullscreen');
+                windowElement.querySelector('.maximize').textContent = '❐';
+                // Fullscreen windows get highest z-index
+                windowElement.style.zIndex = '200';
+            }
+        }
+
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            const time = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('clock').textContent = time;
+        }
+        
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Auto-generate random popups occasionally
+        setInterval(() => {
+            if (Math.random() < 0.15 && activePopups.length < 20) { // Increased limit, reduced frequency
+                const useUndo = Math.random() < 0.7; // 70% chance for undo, 30% for redo
+                if (useUndo) {
+                    showPopup(undoMessages, '⚠️', 'Trading Error');
+                } else {
+                    showPopup(redoMessages, '🔄', 'Redo Activated');
+                }
+            }
+        }, 6000); // Increased interval
+
+        // Show initial popup after page load
+        window.addEventListener('load', () => {
+            setTimeout(performUndo, 3000);
+        });
+
+        // Make windows draggable with smooth movement
+        let isDragging = false;
+        let currentWindow = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        document.addEventListener('mousedown', function(e) {
+            const titleBar = e.target.closest('.window-title-bar');
+            if (titleBar && !e.target.classList.contains('window-control')) {
+                isDragging = true;
+                currentWindow = titleBar.closest('.window') || titleBar.closest('.popup');
+                
+                if (currentWindow) {
+                    // Get current position
+                    const rect = currentWindow.getBoundingClientRect();
+                    const screenRect = document.querySelector('.screen').getBoundingClientRect();
+                    
+                    // Calculate offset from mouse to window top-left corner
+                    dragOffset.x = e.clientX - rect.left;
+                    dragOffset.y = e.clientY - rect.top;
+                    
+                    currentWindow.classList.add('dragging');
+                    
+                    // Bring to front when starting to drag
+                    bringToFront(currentWindow);
+                    
+                    e.preventDefault();
+                }
+            }
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (isDragging && currentWindow) {
+                const screen = document.querySelector('.screen');
+                const screenRect = screen.getBoundingClientRect();
+                const windowRect = currentWindow.getBoundingClientRect();
+                
+                // Calculate new position relative to screen
+                let newX = e.clientX - screenRect.left - dragOffset.x;
+                let newY = e.clientY - screenRect.top - dragOffset.y;
+                
+                // Constrain to screen bounds with some padding
+                const minX = 10;
+                const minY = 10;
+                const maxX = screen.clientWidth - windowRect.width - 10;
+                const maxY = screen.clientHeight - windowRect.height - 40; // Leave room for taskbar
+                
+                newX = Math.max(minX, Math.min(maxX, newX));
+                newY = Math.max(minY, Math.min(maxY, newY));
+                
+                currentWindow.style.left = newX + 'px';
+                currentWindow.style.top = newY + 'px';
+                currentWindow.style.transform = 'none'; // Remove any existing transform
+                
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('mouseup', function(e) {
+            if (isDragging && currentWindow) {
+                currentWindow.classList.remove('dragging');
+                isDragging = false;
+                currentWindow = null;
+            }
+        });
+
+        // Prevent text selection while dragging
+        document.addEventListener('selectstart', function(e) {
+            if (isDragging) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
